@@ -43,13 +43,12 @@ os.chdir("spotdl-dls")  # change directory to spotdl-dls to download the files o
 
 
 def download_song(song_name, song_url):
-    print(f"Downloading: {song_name} with URL: {song_url}")
     term_command = subprocess.run(["spotdl", song_url], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
     success = True
     if term_command.returncode == 0:
-        print(f"Downloaded: {song_name}")
+        print(f"Downloaded: {song_name} with URL: {song_url}")
     else:
-        print(f"Failed to download: {song_name}")
+        print(f"Failed to download: {song_name} with URL: {song_url}")
         success = False
     lock.acquire()
     if success:
