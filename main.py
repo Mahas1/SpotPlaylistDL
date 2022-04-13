@@ -1,15 +1,15 @@
 import json
 import os
+import re
 import shutil
 import subprocess
 import sys
 import threading
 from pathlib import Path
 
-import re
-
-import spotify
 import misc
+import spotify
+
 tracks_details = []
 
 with open("config.json") as f:

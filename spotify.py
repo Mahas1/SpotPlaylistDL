@@ -1,5 +1,4 @@
 import json
-import subprocess
 
 import spotipy
 from spotipy.oauth2 import SpotifyClientCredentials
@@ -51,4 +50,3 @@ def playlist_tracks(playlist_id):
 def get_track_details(track_id):
     track = spotify.track(track_id)
     return track
-
