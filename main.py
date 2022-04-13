@@ -12,6 +12,11 @@ import spotify
 import misc
 tracks_details = []
 
+with open("config.json") as f:
+    config = json.load(f)
+
+download_folder = config.get("download_folder") if config.get("download_folder") else "downloads"
+
 playlist_verifier_regex = r"^https:\/\/open\.spotify\.com\/playlist\/(.)+?(\?si=)+?"
 playlist_id_regex = r"(?<=\/playlist\/)(.*?)(?=\?|$)"
 playlist_url = input("Enter playlist url: ")
@@ -35,7 +40,7 @@ for i in playlist_tracks:
 
 to_download = {track["song_name"]: track["song_url"] for track in tracks_details}
 misc.change_title("Preparing...")
-print(f"Preparing to download {len(tracks_details)} tracks")
+print(f"Preparing to download {len(tracks_details)} tracks to the `{download_folder}` folder")
 failed = []
 succeeded = []
 
@@ -47,14 +52,14 @@ threads_to_run = []
 os.chdir(Path(__file__).parent.absolute())
 
 # remove spotdl downloads folder if it exists
-shutil.rmtree("downloads", ignore_errors=True)
+shutil.rmtree(download_folder, ignore_errors=True)
 
 try:
-    os.mkdir("downloads")
+    os.mkdir(download_folder)
 except FileExistsError:
     pass
 
-os.chdir("downloads")  # change directory to downloads to download the files over there
+os.chdir(download_folder)  # change directory to downloads to download the files over there
 
 error_log = open("error_log.txt", "a")
 
@@ -96,7 +101,7 @@ for thread_chunk in split_threads:
         thread.join()
 
 os.chdir("..")  # change back to root directory
-print("Done!")
+print(f"Done! Downloaded files are in the `{download_folder}` folder")
 print(f"Succeeded: {len(succeeded)}")
 print(f"Failed: {len(failed)}")
 misc.change_title("All done, have a nice day!")
