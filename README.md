@@ -17,11 +17,16 @@ A small project I made to make my life a bit easier.
 
 ## Optional features
 
-- you can change the download directory by editing the `config.json` file's `download_folder` field.
+- You can change the download directory by editing the `config.json` file's `download_folder` field.
 
 ```json
 {
   "download_folder": "./downloads"
 }
 ```
-
+- You can change the amount of threads used with the `thread_count` field in the `config.json` file.
+```json
+{
+  "thread_count": 10
+}
+```

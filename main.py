@@ -10,8 +10,6 @@ from pathlib import Path
 import misc
 import spotify
 
-tracks_details = []
-
 with open("config.json") as f:
     config = json.load(f)
 
@@ -20,6 +18,7 @@ download_folder = config.get("download_folder") if config.get("download_folder")
 playlist_verifier_regex = r"^https:\/\/open\.spotify\.com\/playlist\/(.)+?(\?si=)+?"
 playlist_id_regex = r"(?<=\/playlist\/)(.*?)(?=\?|$)"
 playlist_url = input("Enter playlist url: ")
+
 if not re.match(playlist_verifier_regex, playlist_url):
     print("Invalid playlist url")
     playlist_id = ""
@@ -35,16 +34,22 @@ except Exception as e:
     print(type(e).__name__, "-", e)
     sys.exit()
 
+tracks_details = []
 for i in playlist_tracks:
     tracks_details.append(spotify.get_track_metadata(i))
 
 to_download = {track["song_name"]: track["song_url"] for track in tracks_details}
 misc.change_title("Preparing...")
 print(f"Preparing to download {len(tracks_details)} tracks to the `{download_folder}` folder")
+
 failed = []
 succeeded = []
 
-max_threads = 10
+if not config.get("thread_count"):
+    max_threads = 10
+else:
+    max_threads = int(config["thread_count"]) if str(config["thread_count"]).isdigit() and config["thread_count"] > 0 else 10
+
 lock = threading.Lock()
 threads_to_run = []
 
