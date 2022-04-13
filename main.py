@@ -2,7 +2,9 @@ import json
 import os
 import shutil
 import subprocess
+import sys
 import threading
+from pathlib import Path
 
 import re
 
@@ -20,11 +22,20 @@ if not re.match(playlist_verifier_regex, playlist_url):
 else:
     playlist_id = re.search(playlist_id_regex, playlist_url).group(0)
 
-playlist_tracks = spotify.playlist_track_details(playlist_id)
+print(f"Playlist ID: {playlist_id}")
+try:
+    playlist_tracks = spotify.playlist_track_details(playlist_id)
+except Exception as e:
+    print("An error occurred!")
+    print(type(e).__name__, "-", e)
+    sys.exit()
+
 for i in playlist_tracks:
     tracks_details.append(spotify.get_track_metadata(i))
 
 to_download = {track["song_name"]: track["song_url"] for track in tracks_details}
+misc.change_title("Preparing...")
+print(f"Preparing to download {len(tracks_details)} tracks")
 failed = []
 succeeded = []
 
@@ -32,18 +43,27 @@ max_threads = 10
 lock = threading.Lock()
 threads_to_run = []
 
-shutil.rmtree("spotdl-dls", ignore_errors=True)
+# change directory to project root before doing anything else
+os.chdir(Path(__file__).parent.absolute())
+
+# remove spotdl downloads folder if it exists
+shutil.rmtree("downloads", ignore_errors=True)
 
 try:
-    os.mkdir("spotdl-dls")
+    os.mkdir("downloads")
 except FileExistsError:
     pass
 
-os.chdir("spotdl-dls")  # change directory to spotdl-dls to download the files over there
+os.chdir("downloads")  # change directory to downloads to download the files over there
+
+error_log = open("error_log.txt", "a")
 
 
 def download_song(song_name, song_url):
-    term_command = subprocess.run(["spotdl", song_url], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    term_command = subprocess.run(["spotdl", song_url,
+                                   "--lyrics-provider", "genius",
+                                   "--output-format", "m4a"],
+                                  stdout=subprocess.DEVNULL, stderr=error_log)
     success = True
     if term_command.returncode == 0:
         print(f"Downloaded: {song_name} with URL: {song_url}")
@@ -59,6 +79,7 @@ def download_song(song_name, song_url):
         json.dump(succeeded, f, indent=4)
     with open("../failed.json", "w") as f:
         json.dump(failed, f, indent=4)
+    misc.change_title(f"Downloaded {len(succeeded)} of {len(to_download)} - {len(failed)} failed")
     lock.release()
 
 
@@ -78,3 +99,4 @@ os.chdir("..")  # change back to root directory
 print("Done!")
 print(f"Succeeded: {len(succeeded)}")
 print(f"Failed: {len(failed)}")
+misc.change_title("All done, have a nice day!")
