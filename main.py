@@ -13,6 +13,9 @@ import spotify
 
 start_time = time.time()
 
+# change directory to project root before doing anything else
+os.chdir(Path(__file__).parent.absolute())
+
 with open("config.json") as f:
     config = json.load(f)
 
@@ -54,23 +57,21 @@ else:
 print(f"Lyrics Provider: {lyrics_provider}")
 print(f"Preparing to download {len(tracks_details)} tracks to the `{download_folder}` folder")
 
-failed = []
-succeeded = []
-
 if not config.get("thread_count"):
-    max_threads = 10
+    max_threads = os.cpu_count()
 else:
     max_threads = int(config["thread_count"]) if str(config["thread_count"]).isdigit() and config[
         "thread_count"] > 0 else 10
 
+print(f"Threads: {max_threads}")
 lock = threading.Lock()
 threads_to_run = []
-
-# change directory to project root before doing anything else
-os.chdir(Path(__file__).parent.absolute())
+thread_limiter = threading.BoundedSemaphore(max_threads)
 
 # remove spotdl downloads folder if it exists
-shutil.rmtree(download_folder, ignore_errors=True)
+if config.get("clear_dl_folder", True):
+    print(f"Clearing out folder: {download_folder}")
+    shutil.rmtree(download_folder, ignore_errors=True)
 
 try:
     os.mkdir(download_folder)
@@ -81,38 +82,28 @@ os.chdir(download_folder)  # change directory to downloads to download the files
 
 error_log = open("error_log.txt", "a")
 
+downloaded_songs = 0
+
 
 def download_song(song_name, song_url, lyrics_provider, output_format):
+    global downloaded_songs
+    thread_limiter.acquire()
     term_command = subprocess.run(["spotdl", song_url,
                                    "--lyrics-provider", lyrics_provider,
                                    "--output-format", output_format],
                                   stdout=subprocess.DEVNULL, stderr=error_log)
-    success = True
-    if term_command.returncode == 0:
-        print(f"Downloaded: {song_name} with URL: {song_url}")
-    else:
-        print(f"Failed to download: {song_name} with URL: {song_url}")
-        success = False
-        error_log.write("\n")
     lock.acquire()
-    if success:
-        succeeded.append(song_url)
-    else:
-        failed.append(song_url)
-    with open("../succeeded.json", "w") as f:
-        json.dump(succeeded, f, indent=4)
-    with open("../failed.json", "w") as f:
-        json.dump(failed, f, indent=4)
-    misc.change_title(f"Downloaded {len(succeeded)} of {len(to_download)} - {len(failed)} failed")
+    print(f"Downloaded: {song_name} | Return code: {term_command.returncode}\nTrack URL: {song_url}")
+    downloaded_songs += 1
+    misc.change_title(f"Downloaded {downloaded_songs} of {len(to_download)}")
     lock.release()
+    thread_limiter.release()
 
 
 def download_trackingfile(file_path):
     term_command = subprocess.run(["spotdl", file_path, ], stdout=subprocess.DEVNULL, stderr=error_log)
-    if not term_command.returncode == 0:
-        print(f"Failed to finish download: {file_path}")
-    else:
-        print(f"Finished downloading: {file_path}")
+
+    print(f"Finished download: {file_path} | Return code: {term_command.returncode}")
 
 
 for track in tracks_details:
@@ -120,13 +111,11 @@ for track in tracks_details:
         threading.Thread(target=download_song,
                          args=(track["song_name"], track["song_url"], lyrics_provider, output_format)))
 
-split_threads = misc.chunks(threads_to_run, max_threads)
+for thread in threads_to_run:
+    thread.start()
 
-for thread_chunk in split_threads:
-    for thread in thread_chunk:
-        thread.start()
-    for thread in thread_chunk:
-        thread.join()
+for thread in threads_to_run:
+    thread.join()
 
 incomplete_threads = []
 incomplete_downloads = [x for x in os.listdir(".") if x.lower().endswith(".spotdltrackingfile")]
@@ -141,13 +130,16 @@ for file in os.listdir("."):
 
 for thread in incomplete_threads:
     thread.start()
+
+for thread in incomplete_threads:
     thread.join()
 
 print(f"\nDone! Task completed in {misc.get_time_str(start_time)}")
 print(f"Downloaded files are in the `{download_folder}` folder")
-print(f"Succeeded: {len(succeeded)}")
-print(f"Failed: {len(failed)}")
+print(f"Succeeded: {len([x for x in os.listdir() if x.endswith(output_format)])} of {len(tracks_details)}")
 
-os.chdir("..")  # change back to root directory
 misc.change_title("All done, have a nice day!")
+os.chdir("..")  # change back to root directory
+
+input("Press enter to exit...")
 error_log.close()
