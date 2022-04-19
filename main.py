@@ -44,6 +44,8 @@ except Exception as e:
 
 tracks_details = []
 for i in playlist_tracks:
+    if not i:
+        continue
     tracks_details.append(spotify.get_track_metadata(i))
 
 to_download = {track["song_name"]: track["song_url"] for track in tracks_details}

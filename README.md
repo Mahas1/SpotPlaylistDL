@@ -49,3 +49,26 @@ A small project I made to make my life a bit easier.
   "lyrics_provider": "genius"
 }
 ```
+
+- You can change the output format to any of mp3/m4a/flac/opus/ogg/wav by editing the `output_format` field in the `config.json` file.
+  - If a valid format is not specified, m4a will be used.
+```json
+{
+  "output_format": "mp3"
+}
+```
+
+- You can change the lyrics provider by editing the `lyrics_provider` field in the `config.json` file.
+  - If no provider is specified, it is automatically set to Genius. 
+```json
+{
+  "lyrics_provider": "genius"
+}
+```
+
+- You can toggle clearing of the downloads folder with the `clear_dl_folder` field
+```json
+{
+  "clear_dl_folder": false
+}
+```
