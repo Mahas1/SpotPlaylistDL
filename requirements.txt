@@ -1,0 +1,15 @@
+spotdl >= 4.0.0rc2
+ytmusicapi >= 0.22.0
+pytube >= 12.1.0
+yt-dlp >= 2022.5.18
+mutagen >= 1.45.1
+rich >= 12.4.4
+beautifulsoup4 >= 4.10.0
+requests >= 2.27.1
+rapidfuzz >= 2.0.15
+python-slugify >= 6.1.1
+uvicorn >= 0.17.1
+pydantic >= 1.9.0
+fastapi >= 0.78.0
+nest_asyncio >= 1.5.4
+spotipy

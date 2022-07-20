@@ -1,147 +1,194 @@
 import json
 import os
-import re
-import shutil
-import subprocess
-import sys
-import threading
+import pathlib
 import time
-from pathlib import Path
 
-import misc
-import spotify
+import spotipy
+from spotipy.oauth2 import SpotifyOAuth
 
-start_time = time.time()
+from src import misc, track_parser
+import spotdl
+from spotdl.types.song import Song
 
-# change directory to project root before doing anything else
-os.chdir(Path(__file__).parent.absolute())
+from src.downloader import Downloader
 
-with open("config.json") as f:
-    config = json.load(f)
+from threading import Thread, Lock, Semaphore
 
-download_folder = config.get("download_folder", "downloads")
-output_format = config.get("output_format", "m4a")
-lyrics_provider = config.get("lyrics_provider", "genius")
+config = open("config.json", "r")
+config = json.load(config)
 
-playlist_verifier_regex = r"^https:\/\/open\.spotify\.com\/playlist\/(.)+?(\?si=)+?"
-playlist_id_regex = r"(?<=\/playlist\/)(.*?)(?=\?|$)"
-playlist_url = input("Enter playlist url: ")
+scope = "user-library-read," \
+        "playlist-read-private," \
+        "playlist-read-collaborative"
 
-if not re.match(playlist_verifier_regex, playlist_url):
-    print("Invalid playlist url")
+client_id = config["client_id"]
+client_secret = config["client_secret"]
+redirect_uri = config["redirect_uri"]
+
+playlist_url = input("Enter the playlist URL: ")
+try:
+    playlist_id = misc.get_playlist_id(playlist_url)
+except AttributeError:
+    print("Invalid playlist URL, aborting...")
     playlist_id = ""
     exit()
-else:
-    playlist_id = re.search(playlist_id_regex, playlist_url).group(0)
 
-print(f"Playlist ID: {playlist_id}")
-try:
-    playlist_tracks = spotify.playlist_track_details(playlist_id)
-except Exception as e:
-    print("An error occurred!")
-    print(type(e).__name__, "-", e)
-    sys.exit()
+spotdl_instance = spotdl.Spotdl(client_id=client_id,
+                                client_secret=client_secret,
+                                overwrite="skip",
+                                threads=os.cpu_count() if os.cpu_count() <= 10 else 10,
+                                bitrate=config.get("bitrate", "192k"),
+                                user_auth=False)
+spotify = spotipy.Spotify(auth_manager=SpotifyOAuth(client_id=client_id, client_secret=client_secret, scope=scope,
+                                                    redirect_uri=redirect_uri, cache_path=".cache"))
 
-tracks_details = []
-for i in playlist_tracks:
-    if not i:
-        continue
-    tracks_details.append(spotify.get_track_metadata(i))
+track_downloader = spotdl.download.downloader.Downloader(
+    overwrite="skip",
+    threads=os.cpu_count(),
+    bitrate=config.get("bitrate", "192k"),
+    output_format="mp3",
+    sponsor_block=True,
+)
 
-to_download = {track["song_name"]: track["song_url"] for track in tracks_details}
-misc.change_title("Preparing...")
+parser = track_parser.Parser(spotify)
+song_downloader = Downloader(downloader=track_downloader)
 
-if not output_format.lower() in ["mp3", "m4a", "flac", "opus", "ogg", "wav"]:
-    print("Invalid output format! Defaulting to m4a...")
-    output_format = "m4a"
-else:
-    print(f"Output format: {output_format}")
-print(f"Lyrics Provider: {lyrics_provider}")
-print(f"Preparing to download {len(tracks_details)} tracks to the `{download_folder}` folder")
+results = misc.get_playlist_tracks(playlist_id, spotify)
+start = time.time()
 
-if not config.get("thread_count"):
-    max_threads = os.cpu_count()
-else:
-    max_threads = int(config["thread_count"]) if str(config["thread_count"]).isdigit() and config[
-        "thread_count"] > 0 else 10
+with open("track_data\\download_links.json", "r") as f:
+    download_links = json.load(f)
+with open("track_data\\lyrics.json", "r") as f:
+    lyrics = json.load(f)
 
-print(f"Threads: {max_threads}")
-lock = threading.Lock()
-threads_to_run = []
-thread_limiter = threading.BoundedSemaphore(max_threads)
+# with open("track_data/song_dicts.json") as f:
+#     song_dicts = json.load(f)
+#     print(f"Loaded {len(song_dicts)} songs from file")
+#     song_count = 0
 
-# remove spotdl downloads folder if it exists
-if config.get("clear_dl_folder", True):
-    print(f"Clearing out folder: {download_folder}")
-    shutil.rmtree(download_folder, ignore_errors=True)
+song_dicts = misc.load_tracks_from_disk()
+song_ids = misc.get_song_ids_from_file(song_dicts)
+cache_count = 0
 
-try:
-    os.mkdir(download_folder)
-except FileExistsError:
-    pass
-
-os.chdir(download_folder)  # change directory to downloads to download the files over there
-
-error_log = open("error_log.txt", "a")
-
-downloaded_songs = 0
+lock = Lock()
+semaphore = Semaphore(os.cpu_count())
 
 
-def download_song(song_name, song_url, lyrics_provider, output_format):
-    global downloaded_songs
-    thread_limiter.acquire()
-    term_command = subprocess.run(["spotdl", song_url,
-                                   "--lyrics-provider", lyrics_provider,
-                                   "--output-format", output_format],
-                                  stdout=subprocess.DEVNULL, stderr=error_log)
-    lock.acquire()
-    print(f"Downloaded: {song_name} | Return code: {term_command.returncode}\nTrack URL: {song_url}")
-    downloaded_songs += 1
-    misc.change_title(f"Downloaded {downloaded_songs} of {len(to_download)}")
-    lock.release()
-    thread_limiter.release()
+def generate_song_object(track_dict):
+    semaphore.acquire()
+    global song_dicts, cache_count
+    result = dict()
+    try:
+        result = parser.spotdl_dict(track_dict, get_lyrics=False)
+        if result["song_id"] in song_ids:
+            print("Present in dict. Moving on...")
+            try:
+                lock.release()
+            except RuntimeError:
+                # release unlocked lock
+                pass
+            raise FileExistsError
+        else:
+            cache_count += 1
+        if result["song_id"] in lyrics:
+            result["lyrics"] = lyrics[result["song_id"]]
+        else:
+            result["lyrics"] = parser.get_lyrics(result["name"], result["artists"])
+        song_obj = Song.from_dict(result)
+        if result["download_url"] is None:
+            if result["song_id"] in download_links:
+                song_obj.download_url = download_links[result["song_id"]]
+            else:
+                song_obj.download_url = parser.get_download_url(song_obj)
+            result["download_url"] = song_obj.download_url
+        if result.get("download_url") and result["song_id"] not in download_links:
+            download_links[result["song_id"]] = result["download_url"]
+        if result.get("lyrics") and result["song_id"] not in lyrics:
+            lyrics[result["song_id"]] = result.get("lyrics")
+
+        print(f"Metadata successfully fetched - {result['name']}")
+        lock.acquire()
+        song_dicts.append(result)
+        try:
+            lock.release()
+        except RuntimeError:
+            pass
+        if cache_count >= 10:
+            lock.acquire()
+            print("10 tracks unsaved, Saving now...")
+            misc.save_tracks_to_file(song_dicts)
+            cache_count = 0
+            try:
+                lock.release()
+            except RuntimeError:
+                # release unlocked lock
+                pass
+
+    except Exception as e:
+        if isinstance(e, FileExistsError):
+            print(f"Metadata successfully fetched from disk - {result['name']}")
+        else:
+            print(f"Metadata failed to fetch - {result['name'] if result else 'Track'} - {type(e).__name__}: {e}")
+        try:
+            lock.release()
+        except:
+            pass
+    semaphore.release()
 
 
-def download_trackingfile(file_path):
-    term_command = subprocess.run(["spotdl", file_path, ], stdout=subprocess.DEVNULL, stderr=error_log)
+tracks_count = len(results)
+print(f"Found {tracks_count} tracks in playlist")
 
-    print(f"Finished download: {file_path} | Return code: {term_command.returncode}")
+metadata_generate_start = time.time()
+threads = []
+for i in range(0, tracks_count):
+    track = results[i]["track"]
+    thread = Thread(target=generate_song_object, args=(track,))
+    threads.append(thread)
 
-
-for track in tracks_details:
-    threads_to_run.append(
-        threading.Thread(target=download_song,
-                         args=(track["song_name"], track["song_url"], lyrics_provider, output_format)))
-
-for thread in threads_to_run:
+for thread in threads:
     thread.start()
 
-for thread in threads_to_run:
+for thread in threads:
     thread.join()
 
-incomplete_threads = []
-incomplete_downloads = [x for x in os.listdir(".") if x.lower().endswith(".spotdltrackingfile")]
-if any(incomplete_downloads):
-    print(f"\n{len(incomplete_downloads)} incomplete downloads found! Attempting to finish the download now...")
-    misc.change_title("Finishing incomplete downloads...")
-for file in os.listdir("."):
-    if file.lower().endswith(".spotdltrackingfile"):
-        incomplete_threads.append(
-            threading.Thread(target=download_trackingfile, args=(file,))
-        )
+metadata_end_time = time.time()
+print("="*20)
 
-for thread in incomplete_threads:
+print(f"Metadata generated in: {misc.pretty_time(int(metadata_end_time - metadata_generate_start))}")
+# track metadata has been acquired
+threads = []
+
+song_objects = []
+for item in song_dicts:
+    song_objects.append(Song.from_dict(item))
+song_object_generation_finish = time.time()
+if cache_count != 0:
+    misc.save_tracks_to_file(song_dicts)
+    # save any remaining tracks
+    cache_count = 0
+
+for song in song_objects:
+    threads.append(Thread(target=song_downloader.download, args=(song,)))
+
+root_path = pathlib.Path(__file__).parent.absolute()
+
+if config.get("download_folder"):
+    folder = config["download_folder"]
+    user_home = os.path.expanduser("~")
+    try:
+        os.mkdir(folder.replace("~", user_home))
+    except FileExistsError:
+        pass
+    os.chdir(folder.replace("~", user_home))
+for thread in threads:
     thread.start()
-
-for thread in incomplete_threads:
+for thread in threads:
     thread.join()
-
-print(f"\nDone! Task completed in {misc.get_time_str(start_time)}")
-print(f"Downloaded files are in the `{download_folder}` folder")
-print(f"Succeeded: {len([x for x in os.listdir() if x.endswith(output_format)])} of {len(tracks_details)}")
-
-misc.change_title("All done, have a nice day!")
-os.chdir("..")  # change back to root directory
-
-input("Press enter to exit...")
-error_log.close()
+download_end_time = time.time()
+os.chdir(root_path)
+print("="*20)
+print(f"Downloads finished in: {misc.pretty_time(int(download_end_time - song_object_generation_finish))}")
+print(f"Total time taken: {misc.pretty_time(int(download_end_time - start))}")
+print("="*20)
+input("Press any key to continue...")

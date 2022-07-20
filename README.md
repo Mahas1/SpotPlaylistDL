@@ -1,74 +1,38 @@
 # SpotPlaylistDL
+A tool utilizing `spotdl` to download a playlist from Spotify.
 
-A small project I made to make my life a bit easier.
+**Warning**
+This script is intended only for my use. If you want to use this, use it at your own risk.
+However, bug reports and feature requests are appreciated.
 
-## Things to note
+## Usage
+- Install dependencies by `pip install -r requirements.txt`
+- Fill in the required details in `config.json` **(you need to create the file yourself)**
+    ```json
+    {
+    "client_id": "your_client_id",
+    "client_secret": "your_client_secret",
+    "redirect_uri": "http://localhost:8080 (set this up in the Spotify developer portal)",
+    "bitrate": "320k",
+    "download_folder": "~/downloads/spotdl downloads"
+    }
+    ```
+- Run `python main.py`
 
-- You'll need Python 3.8 or higher to use this software.
-- You'll also need ffmpeg and spotdl installed.
-  - Install spotdl with `python3 -m pip install spotdl`
-  - Install ffmpeg from [this link](https://ffmpeg.org/download.html)
-- You'll need to make an application in the [Spotify Developer Portal](https://developer.spotify.com/dashboard/login).
-- Copy the client ID and client secret, and paste them into the `config.json`.
+## Adding Custom Tracks
+- Access the Custom Track menu by running `python customtrack.py`
+- You can add, delete, and view the existing Custom Tracks in the script.
 
-```json
-{
-  "client_id": "your_client_id",
-  "client_secret": "your_client_secret"
-}
-```
+## How It Works
+- The script saves the metadata it acquires to `track_data/song_dicts.json` to save API calls on multiple downloads.
+- When looking for metadata, it first searches the `song_dicts.json`. 
+If metadata is not present, it fetches metadata from the Spotify API and saves it to the file.
+- It then downloads each track in the playlist. This process is threaded, and uses as many threads as the number of CPU threads.
+<br><br>
+- Feel free to make a PR with your additions to the `song_dicts.json`.
 
-## Optional features
-
-- You can change the download directory by editing the `config.json` file's `download_folder` field.
-
-```json
-{
-  "download_folder": "./downloads"
-}
-```
-- You can change the amount of threads used with the `thread_count` field in the `config.json` file.
-```json
-{
-  "thread_count": 10
-}
-```
-
-- You can change the output format to any of mp3/m4a/flac/opus/ogg/wav by editing the `output_format` field in the `config.json` file.
-  - If a valid format is not specified, m4a will be used.
-```json
-{
-  "output_format": "mp3"
-}
-```
-
-- You can change the lyrics provider by editing the `lyrics_provider` field in the `config.json` file.
-  - If no provider is specified, it is automatically set to Genius. 
-```json
-{
-  "lyrics_provider": "genius"
-}
-```
-
-- You can change the output format to any of mp3/m4a/flac/opus/ogg/wav by editing the `output_format` field in the `config.json` file.
-  - If a valid format is not specified, m4a will be used.
-```json
-{
-  "output_format": "mp3"
-}
-```
-
-- You can change the lyrics provider by editing the `lyrics_provider` field in the `config.json` file.
-  - If no provider is specified, it is automatically set to Genius. 
-```json
-{
-  "lyrics_provider": "genius"
-}
-```
-
-- You can toggle clearing of the downloads folder with the `clear_dl_folder` field
-```json
-{
-  "clear_dl_folder": false
-}
-```
+# Credits
+- [Spotdl](https://github.com/spotDL/spotify-downloader/) for Spotdl and for clarifying any doubts I had about their library.
+- [Spotipy](https://github.com/plamere/spotipy) for the Spotify API Wrapper.
+- [Joshj23](https://github.com/Joshj23icy) for their extensive help in gathering lyrics 
+for hundreds of tracks now present in `song_dicts.json`.
