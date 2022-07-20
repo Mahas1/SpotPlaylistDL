@@ -1,8 +1,8 @@
 # SpotPlaylistDL
 A tool utilizing `spotdl` to download a playlist from Spotify.
 
-**Warning**
-This script is intended only for my use. If you want to use this, use it at your own risk.
+> **Warning**
+> This script is intended only for my use. If you want to use this, use it at your own risk.
 However, bug reports and feature requests are appreciated.
 
 ## Usage
