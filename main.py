@@ -67,20 +67,21 @@ with open("track_data\\lyrics.json", "r") as f:
 #     song_count = 0
 
 song_dicts = misc.load_tracks_from_disk()
-song_ids = misc.get_song_ids_from_file(song_dicts)
 cache_count = 0
-
+id_track_mapping = misc.id_track_mapping(song_dicts)
+to_download_ids = []
 lock = Lock()
 semaphore = Semaphore(os.cpu_count())
 
 
 def generate_song_object(track_dict):
     semaphore.acquire()
-    global song_dicts, cache_count
+    global song_dicts, cache_count, id_track_mapping, to_download_ids
     result = dict()
     try:
         result = parser.spotdl_dict(track_dict, get_lyrics=False)
-        if result["song_id"] in song_ids:
+        if result["song_id"] in id_track_mapping:
+            to_download_ids.append(result["song_id"])
             print("Present in dict. Moving on...")
             try:
                 lock.release()
@@ -107,8 +108,10 @@ def generate_song_object(track_dict):
             lyrics[result["song_id"]] = result.get("lyrics")
 
         print(f"Metadata successfully fetched - {result['name']}")
+        to_download_ids.append(result["song_id"])
         lock.acquire()
         song_dicts.append(result)
+        to_download_ids.append(result["song_id"])
         try:
             lock.release()
         except RuntimeError:
@@ -159,8 +162,9 @@ print(f"Metadata generated in: {misc.pretty_time(int(metadata_end_time - metadat
 # track metadata has been acquired
 threads = []
 
+to_download_dicts = [id_track_mapping[id] for id in to_download_ids]
 song_objects = []
-for item in song_dicts:
+for item in to_download_dicts:
     song_objects.append(Song.from_dict(item))
 song_object_generation_finish = time.time()
 if cache_count != 0:

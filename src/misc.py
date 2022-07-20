@@ -76,3 +76,7 @@ def save_tracks_to_file(song_dicts: dict):
     with open("track_data/song_dicts.json", "w") as f:
         json.dump(song_dicts, f, indent=4)
     print(f"Saved {len(song_dicts)} songs to file")
+
+
+def id_track_mapping(song_dicts: dict):
+    return {song_dict.get("song_id"): song_dict for song_dict in song_dicts}
