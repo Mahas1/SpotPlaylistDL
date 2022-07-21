@@ -313,5 +313,15 @@
         "friendly_name": "Love Dramatic",
         "spotify_url": "https://open.spotify.com/track/7AhMVnj6N89jmuCKNyr0AZ?si=76cb5af45b9f4e24",
         "youtube_url": "https://www.youtube.com/watch?v=RBPVtM2CJSM"
+    },
+    {
+        "friendly_name": "Hotel California",
+        "spotify_url": "https://open.spotify.com/track/40riOy7x9W7GXjyGp4pjAv?si=06fb213d81754294",
+        "youtube_url": "https://www.youtube.com/watch?v=BciS5krYL80"
+    },
+    {
+        "friendly_name": "Bizarre love triangle",
+        "spotify_url": "https://open.spotify.com/track/6wVViUl2xSRoDK2T7dMZbR?si=02386a399f6c414a",
+        "youtube_url": "https://www.youtube.com/watch?v=LhLmgg_u29k"
     }
 ]
