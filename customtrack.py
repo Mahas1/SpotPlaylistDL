@@ -61,8 +61,9 @@ class CustomTrack:
             os.system('clear')
 
     def push_to_git(self):
-        os.system("git add custom_tracks.json")
-        os.system("git commit -m \"update custom_tracks.json\"")
+        os.system("git add track_data/custom_tracks_human.json")
+        os.system("git add track_data/custom_tracks_simple.json")
+        os.system("git commit -m \"Update Custom Tracks\"")
         os.system("git push")
 
     def pull_from_git(self):
