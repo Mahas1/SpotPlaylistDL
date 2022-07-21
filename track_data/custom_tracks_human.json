@@ -323,5 +323,15 @@
         "friendly_name": "Bizarre love triangle",
         "spotify_url": "https://open.spotify.com/track/6wVViUl2xSRoDK2T7dMZbR?si=02386a399f6c414a",
         "youtube_url": "https://www.youtube.com/watch?v=LhLmgg_u29k"
+    },
+    {
+        "friendly_name": "Daijoubu",
+        "spotify_url": "https://open.spotify.com/track/3TkNG3lYmJHk2Ftj4zy0I5?si=9ef6e0b822c9415f",
+        "youtube_url": "https://www.youtube.com/watch?v=t6Z0oSm4F-o"
+    },
+    {
+        "friendly_name": "Makafuka",
+        "spotify_url": "https://open.spotify.com/track/0CiSWdSq8rTcVvoWpZIaeO?si=fe2a890abbc14eb8",
+        "youtube_url": "https://www.youtube.com/watch?v=oKrexpXBkH4"
     }
 ]
