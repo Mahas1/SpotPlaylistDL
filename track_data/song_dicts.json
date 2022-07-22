@@ -21389,5 +21389,69 @@
         "download_url": "https://www.youtube.com/watch?v=M303epOYWWY",
         "song_list": null,
         "lyrics": null
+    },
+    {
+        "name": "A Quiet Life",
+        "artists": [
+            "Marco Beltrami"
+        ],
+        "artist": "Marco Beltrami",
+        "album_name": "A Quiet Place (Original Soundtrack Album)",
+        "album_artist": "Marco Beltrami",
+        "copyright_text": "(P) 2018 Exclusively Licensed by Milan Entertainment, Inc.",
+        "genres": [
+            "classic soundtrack",
+            "orchestral soundtrack",
+            "scorecore",
+            "soundtrack"
+        ],
+        "disc_number": 1,
+        "disc_count": 1,
+        "duration": 178.72,
+        "year": "2018",
+        "date": "2018",
+        "track_number": 4,
+        "tracks_count": 16,
+        "isrc": "US5941408750",
+        "song_id": "73ZUlyT8NN4iP1hSI68C5C",
+        "explicit": false,
+        "publisher": "Masterworks",
+        "url": "https://open.spotify.com/track/73ZUlyT8NN4iP1hSI68C5C",
+        "cover_url": "https://i.scdn.co/image/ab67616d0000b273460e14269331abc9a956373a",
+        "download_url": "https://youtube.com/watch?v=9FvqvSaQIKw",
+        "song_list": null,
+        "lyrics": null
+    },
+    {
+        "name": "Kangal Irandal",
+        "artists": [
+            "James Vasanthan",
+            "Bellie Raj",
+            "Deepa Miriam"
+        ],
+        "artist": "James Vasanthan",
+        "album_name": "Subramaniapuram (Original Motion Picture Soundtrack)",
+        "album_artist": "James Vasanthan",
+        "copyright_text": "(P) 2008 Sony Music Entertainment India Pvt. Ltd.",
+        "genres": [
+            "filmi",
+            "tamil pop"
+        ],
+        "disc_number": 1,
+        "disc_count": 1,
+        "duration": 322.013,
+        "year": "2008",
+        "date": "2008-10-17",
+        "track_number": 1,
+        "tracks_count": 6,
+        "isrc": "INS171100410",
+        "song_id": "3IpEJ86hrMfUcoXCk9U4h3",
+        "explicit": false,
+        "publisher": "Think Music (India)",
+        "url": "https://open.spotify.com/track/3IpEJ86hrMfUcoXCk9U4h3",
+        "cover_url": "https://i.scdn.co/image/ab67616d0000b2731ea64edfdbac8575ff13ab2e",
+        "download_url": "https://youtube.com/watch?v=xw-eJbYVETc",
+        "song_list": null,
+        "lyrics": null
     }
 ]

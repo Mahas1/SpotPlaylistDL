@@ -38,7 +38,8 @@ spotdl_instance = spotdl.Spotdl(client_id=client_id,
                                 overwrite="skip",
                                 threads=os.cpu_count() if os.cpu_count() <= 10 else 10,
                                 bitrate=config.get("bitrate", "192k"),
-                                user_auth=False)
+                                user_auth=False
+                                )
 spotify = spotipy.Spotify(auth_manager=SpotifyOAuth(client_id=client_id, client_secret=client_secret, scope=scope,
                                                     redirect_uri=redirect_uri, cache_path=".cache"))
 
@@ -48,6 +49,8 @@ track_downloader = spotdl.download.downloader.Downloader(
     bitrate=config.get("bitrate", "192k"),
     output_format="mp3",
     sponsor_block=False,
+    output="{album-artist}/{album}/{artists} - {title}.{output-ext}"
+
 )
 
 parser = track_parser.Parser(spotify)
