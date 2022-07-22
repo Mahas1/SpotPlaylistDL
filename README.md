@@ -10,11 +10,12 @@ However, bug reports and feature requests are appreciated.
 - Fill in the required details in `config.json` **(you need to create the file yourself)**
     ```json
     {
-    "client_id": "your_client_id",
-    "client_secret": "your_client_secret",
-    "redirect_uri": "http://localhost:8080 (set this up in the Spotify developer portal)",
-    "bitrate": "320k",
-    "download_folder": "~/downloads/spotdl downloads"
+        "client_id": "your_client_id",
+        "client_secret": "your_client_secret",
+        "redirect_uri": "http://localhost:8080 (set this up in the Spotify developer portal)",
+        "bitrate": "320k",
+        "download_folder": "~/downloads/spotdl downloads",
+        "overwrite": "skip"
     }
     ```
 - Run `python main.py`

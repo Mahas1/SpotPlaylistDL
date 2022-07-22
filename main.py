@@ -43,11 +43,11 @@ spotify = spotipy.Spotify(auth_manager=SpotifyOAuth(client_id=client_id, client_
                                                     redirect_uri=redirect_uri, cache_path=".cache"))
 
 track_downloader = spotdl.download.downloader.Downloader(
-    overwrite="skip",
+    overwrite=config.get("overwrite", "skip"),
     threads=os.cpu_count(),
     bitrate=config.get("bitrate", "192k"),
     output_format="mp3",
-    sponsor_block=True,
+    sponsor_block=False,
 )
 
 parser = track_parser.Parser(spotify)
@@ -90,6 +90,7 @@ def generate_song_object(track_dict):
                 pass
             raise FileExistsError
         else:
+            print(result["name"], "not present in cache.")
             cache_count += 1
         if result["song_id"] in lyrics:
             result["lyrics"] = lyrics[result["song_id"]]
@@ -116,9 +117,9 @@ def generate_song_object(track_dict):
             lock.release()
         except RuntimeError:
             pass
-        if cache_count >= 10:
+        if cache_count != 0:
             lock.acquire()
-            print("10 tracks unsaved, Saving now...")
+            print("track unsaved, Saving now...")
             misc.save_tracks_to_file(song_dicts)
             cache_count = 0
             try:

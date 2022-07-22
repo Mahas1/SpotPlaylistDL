@@ -21325,5 +21325,69 @@
         "download_url": "https://youtube.com/watch?v=qtd4T7CNJTE",
         "song_list": null,
         "lyrics": null
+    },
+    {
+        "name": "MAKAFUKA",
+        "artists": [
+            "RADWIMPS"
+        ],
+        "artist": "RADWIMPS",
+        "album_name": "MAKAFUKA",
+        "album_artist": "RADWIMPS",
+        "copyright_text": "(C) 2021 voque ting co., ltd.",
+        "genres": [
+            "j-pop",
+            "j-rock",
+            "japanese emo",
+            "visual kei"
+        ],
+        "disc_number": 1,
+        "disc_count": 1,
+        "duration": 331.6,
+        "year": "2021",
+        "date": "2021-11-05",
+        "track_number": 1,
+        "tracks_count": 1,
+        "isrc": "JPV972100010",
+        "song_id": "0CiSWdSq8rTcVvoWpZIaeO",
+        "explicit": false,
+        "publisher": "voque ting co., ltd.",
+        "url": "https://open.spotify.com/track/0CiSWdSq8rTcVvoWpZIaeO",
+        "cover_url": "https://i.scdn.co/image/ab67616d0000b273a0aa906578fe419540c25150",
+        "download_url": "https://www.youtube.com/watch?v=oKrexpXBkH4",
+        "song_list": null,
+        "lyrics": null
+    },
+    {
+        "name": "Grand Escape",
+        "artists": [
+            "RADWIMPS"
+        ],
+        "artist": "RADWIMPS",
+        "album_name": "FOREVER DAZE",
+        "album_artist": "RADWIMPS",
+        "copyright_text": "(C) 2021 voque ting co., ltd.",
+        "genres": [
+            "j-pop",
+            "j-rock",
+            "japanese emo",
+            "visual kei"
+        ],
+        "disc_number": 1,
+        "disc_count": 1,
+        "duration": 337.613,
+        "year": "2021",
+        "date": "2021-11-23",
+        "track_number": 11,
+        "tracks_count": 14,
+        "isrc": "JPV972100014",
+        "song_id": "0knUviaXNsyiwxiU9mlvbT",
+        "explicit": false,
+        "publisher": "voque ting co., ltd.",
+        "url": "https://open.spotify.com/track/0knUviaXNsyiwxiU9mlvbT",
+        "cover_url": "https://i.scdn.co/image/ab67616d0000b273bbd75075f28711876b9fee2b",
+        "download_url": "https://www.youtube.com/watch?v=M303epOYWWY",
+        "song_list": null,
+        "lyrics": null
     }
 ]
